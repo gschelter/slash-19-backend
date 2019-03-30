@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify, abort
 from requests.exceptions import MissingSchema
-
+from flask_cors import CORS
 from podcasts import find_podcast_by_website
 
-PORT = 80
+PORT = 7777
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/podcast-by-website')
