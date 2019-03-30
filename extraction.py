@@ -21,10 +21,10 @@ def extract_text(html):
 
 def extract_metadata(html):
     soup = BeautifulSoup(html, "lxml")
-    tags = ['title', 'description']
+    tags = ['title', 'description', 'keywords']
 
     return {
-        tag: soup.find("meta", property=tag) for tag in tags
+        tag: soup.find("meta", attrs={'name': lambda x: x and x.lower() == tag}).attrs['content'] for tag in tags
     }
 
 
@@ -92,6 +92,6 @@ def combined(website_url: str):
 
 
 if __name__ == "__main__":
-    combined('https://www.redhat.com/de')
+    combined('https://www.dell.com/de-de')
     # for genre in get_genres():
     #  print(genre)
