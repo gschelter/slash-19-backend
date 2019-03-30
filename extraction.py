@@ -9,8 +9,23 @@ import lxml.html
 from bs4 import BeautifulSoup
 import tldextract
 from multiprocessing.dummy import Pool as ThreadPool
+from flask import Flask, request, jsonify, abort
+from requests.exceptions import MissingSchema
 
 API_KEY = "ada358ce40ea4d53a3188656f4b0e5ec"
+PORT = 80
+
+app = Flask(__name__)
+
+
+@app.route('/podcast-by-website')
+def flask_podcast_by_website():
+    try:
+        url = request.args.get('url')
+
+        return jsonify(find_podcast_by_website(url))
+    except MissingSchema as e:
+        abort(422, str(e))
 
 
 def do_networking(callback, data):
@@ -148,7 +163,7 @@ def get_podcasts_for_phrases(phrases):
     return podcasts
 
 
-def combined(website_url: str):
+def find_podcast_by_website(website_url: str, output=False):
     data = get_website_data(website_url)
 
     query = []
@@ -163,19 +178,20 @@ def combined(website_url: str):
 
     podcasts = get_podcasts_for_phrases(query)
 
-    print('Counted words: {}'.format(data['counter']))
-    print('Phrases: {}'.format(data['phrases']))
-    print('Keywords: {}'.format(data['keywords']))
-    print('Title: {}'.format(data['title']))
-    print('Description: {}'.format(data['description']))
-    print('Query: {}'.format(query))
+    if output:
+        print('Counted words: {}'.format(data['counter']))
+        print('Phrases: {}'.format(data['phrases']))
+        print('Keywords: {}'.format(data['keywords']))
+        print('Title: {}'.format(data['title']))
+        print('Description: {}'.format(data['description']))
+        print('Query: {}'.format(query))
 
-    print('== Podcasts ==')
-    for podcast in podcasts:
-        print(podcast['title'])
+        print('== Podcasts ==')
+        for podcast in podcasts:
+            print(podcast['title'])
+
+    return podcasts
 
 
-if __name__ == "__main__":
-    combined('https://www.dell.com/de-de')
-    # for genre in get_genres():
-    #  print(genre)
+if __name__ == '__main__':
+    app.run(debug=False, host='0.0.0.0', port=PORT)
