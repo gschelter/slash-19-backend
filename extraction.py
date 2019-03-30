@@ -72,7 +72,11 @@ def get_website_data(link: str):
     data['text'] = html2text(html)
     data['main_text'] = extract_main_text(html)
     data['counter'] = count_words(data['text'])
-    data['phrases'] = extract_phrases(data['text'])
+
+    phrases_text = data['text']
+    if data['title']:
+        phrases_text += ' ' + data['title']
+    data['phrases'] = extract_phrases(phrases_text)
 
     return data
 
@@ -147,7 +151,12 @@ def get_podcasts_for_phrases(phrases):
 def combined(website_url: str):
     data = get_website_data(website_url)
 
-    query = data['keywords'] if data['keywords'] else [tuple[0] for tuple in data['phrases']]
+    query = []
+    if data['keywords']:
+        query += data['keywords']
+    else:
+        query += [tuple[0] for tuple in data['phrases']]
+
     if data['title']:
         query += data['title'].split(' ')
     query.append(tldextract.extract(website_url).domain)
@@ -167,6 +176,6 @@ def combined(website_url: str):
 
 
 if __name__ == "__main__":
-    combined('https://www.apple.com/')
+    combined('https://www.dell.com/de-de')
     # for genre in get_genres():
     #  print(genre)
