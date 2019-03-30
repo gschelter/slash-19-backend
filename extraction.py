@@ -7,6 +7,7 @@ from rake import Rake
 from readability import Document
 import lxml.html
 from bs4 import BeautifulSoup
+import tldextract
 
 API_KEY = "ada358ce40ea4d53a3188656f4b0e5ec"
 
@@ -137,6 +138,9 @@ def combined(website_url: str):
     data = get_website_data(website_url)
 
     query = data['keywords'] if data['keywords'] else [tuple[0] for tuple in data['phrases']]
+    if data['title']:
+        query += data['title'].split(' ')
+    query.append(tldextract.extract(website_url).domain)
 
     podcasts = get_podcasts_for_phrases(query)
 
