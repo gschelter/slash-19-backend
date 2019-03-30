@@ -23,9 +23,12 @@ def extract_metadata(html):
     soup = BeautifulSoup(html, "lxml")
     tags = ['title', 'description', 'keywords']
 
-    return {
+    data = {
         tag: soup.find("meta", attrs={'name': lambda x: x and x.lower() == tag}).attrs['content'] for tag in tags
     }
+    data['keywords'] = data['keywords'].split(',')
+
+    return data
 
 
 def get_website_data(link: str):
