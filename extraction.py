@@ -44,10 +44,13 @@ def extract_metadata(html):
     soup = BeautifulSoup(html, "lxml")
     tags = ['title', 'description', 'keywords']
 
-    data = {
-        tag: soup.find("meta", attrs={'name': lambda x: x and x.lower() == tag}).attrs['content'] for tag in tags
-    }
-    data['keywords'] = data['keywords'].split(',')
+    data = {}
+    for tag in tags:
+        ele = soup.find("meta", attrs={'name': lambda x: x and x.lower() == tag})
+        data[tag] = ele.attrs['content'] if ele is not None else None
+
+    if data['keywords']:
+        data['keywords'] = data['keywords'].split(',')
 
     return data
 
@@ -76,7 +79,7 @@ def extract_phrases_nltk(text: str):
 
 # https://www.airpair.com/nlp/keyword-extraction-tutorial
 def extract_phrases(text):
-    r = Rake('SmartStoplist.txt', 4, 3, 4)
+    r = Rake('SmartStoplist.txt', min_char_length=3, max_words_length=1, min_keyword_frequency=4)
     return r.run(text)
 
 
@@ -86,9 +89,9 @@ def count_words(text: str):
     return c.most_common(20)
 
 
-def get_data(term):
+def search_listennotes(term):
     res = requests.get(
-        "https://listen-api.listennotes.com/api/v2/search?q={}&sort_by_date=0&type=episode&offset=0&language=English&ocid=&ncid=&safe_mode=0".format(
+        "https://listen-api.listennotes.com/api/v2/search?q={}&sort_by_date=0&offset=0&language=English&only_in=title,description&safe_mode=1".format(
             term),
         headers={
             "X-ListenAPI-Key": API_KEY})
@@ -103,17 +106,29 @@ def get_genres():
     return json.loads(res.text)['genres']
 
 
-def get_podcasts_for_phrases(phrases):
-    podcasts = []
+def get_podcast_details(podcast_id):
+    res = requests.get("https://listen-api.listennotes.com/api/v2/podcasts/{}".format(podcast_id),
+                       headers={"X-ListenAPI-Key": API_KEY})
 
-    i = min(3, len(phrases))
-    while i > 0 and not (i == 1 and len(podcasts) > 0):
+    return json.loads(res.text)
+
+
+def get_podcasts_for_phrases(phrases):
+    results = []
+
+    i = min(2, len(phrases))
+    while i > 0 and not (i == 1 and len(results) > 0):
         current_phrases = phrases[:i]
         for permutation in list(itertools.permutations(current_phrases)):
-            matching_podcasts = get_data(' '.join(permutation))
+            matching_podcasts = search_listennotes(' '.join(permutation))
 
-            podcasts += matching_podcasts
+            results += matching_podcasts
         i -= 1
+
+    # remove duplicate podcasts
+    podcast_ids = list(set([result['podcast_id'] for result in results]))
+
+    podcasts = [get_podcast_details(podcast_id) for podcast_id in podcast_ids]
 
     return podcasts
 
@@ -121,19 +136,23 @@ def get_podcasts_for_phrases(phrases):
 def combined(website_url: str):
     data = get_website_data(website_url)
 
-    print('Counted words: {}', data['counter'])
-    print('Phrases: {}', data['phrases'])
-    print('Keywords: {}', data['keywords'])
-    print('Title: {}', data['title'])
-    print('Description: {}', data['description'])
+    query = data['keywords'] if data['keywords'] else [tuple[0] for tuple in data['phrases']]
 
-    podcasts = get_podcasts_for_phrases(data['phrases'])
+    podcasts = get_podcasts_for_phrases(query)
 
+    print('Counted words: {}'.format(data['counter']))
+    print('Phrases: {}'.format(data['phrases']))
+    print('Keywords: {}'.format(data['keywords']))
+    print('Title: {}'.format(data['title']))
+    print('Description: {}'.format(data['description']))
+    print('Query: {}'.format(query))
+
+    print('== Podcasts ==')
     for podcast in podcasts:
-        print(podcast['title_original'])
+        print(podcast['title'])
 
 
 if __name__ == "__main__":
-    combined('https://www.dell.com/de-de')
+    combined('https://www.redhat.com/de')
     # for genre in get_genres():
     #  print(genre)
