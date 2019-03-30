@@ -2,7 +2,8 @@ import itertools
 from collections import Counter
 import requests
 import json
-from rake_nltk import Rake
+from rake_nltk import Rake as Rake_nltk
+from rake import Rake
 from readability import Document
 import lxml.html
 from bs4 import BeautifulSoup
@@ -65,12 +66,18 @@ def get_website_data(link: str):
     return data
 
 
-def extract_phrases(text: str):
-    r = Rake(min_length=1, max_length=4)  # Uses stopwords for english from NLTK, and all puntuation characters.
+def extract_phrases_nltk(text: str):
+    r = Rake_nltk(min_length=1, max_length=4)  # Uses stopwords for english from NLTK, and all puntuation characters.
     r.extract_keywords_from_text(text)
 
     phrases = r.get_ranked_phrases()
     return phrases
+
+
+# https://www.airpair.com/nlp/keyword-extraction-tutorial
+def extract_phrases(text):
+    r = Rake('SmartStoplist.txt', 4, 3, 4)
+    return r.run(text)
 
 
 def count_words(text: str):
