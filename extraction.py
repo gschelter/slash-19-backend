@@ -8,8 +8,15 @@ from readability import Document
 import lxml.html
 from bs4 import BeautifulSoup
 import tldextract
+from multiprocessing.dummy import Pool as ThreadPool
 
 API_KEY = "ada358ce40ea4d53a3188656f4b0e5ec"
+
+
+def do_networking(callback, data):
+    thread_pool = ThreadPool(processes=min(10, len(data)))
+
+    return thread_pool.map(callback, data)
 
 
 def html2text(html):
@@ -120,16 +127,19 @@ def get_podcasts_for_phrases(phrases):
     i = min(2, len(phrases))
     while i > 0 and not (i == 1 and len(results) > 0):
         current_phrases = phrases[:i]
-        for permutation in list(itertools.permutations(current_phrases)):
-            matching_podcasts = search_listennotes(' '.join(permutation))
 
-            results += matching_podcasts
+        matching_podcasts = do_networking(lambda permutation: search_listennotes(' '.join(permutation)),
+                                          list(itertools.permutations(current_phrases)))
+
+        for x in matching_podcasts:
+            results += x
+
         i -= 1
 
     # remove duplicate podcasts
     podcast_ids = list(set([result['podcast_id'] for result in results]))
 
-    podcasts = [get_podcast_details(podcast_id) for podcast_id in podcast_ids]
+    podcasts = do_networking(lambda podcast_id: get_podcast_details(podcast_id), podcast_ids)
 
     return podcasts
 
@@ -157,6 +167,6 @@ def combined(website_url: str):
 
 
 if __name__ == "__main__":
-    combined('https://www.redhat.com/de')
+    combined('https://www.apple.com/')
     # for genre in get_genres():
     #  print(genre)
