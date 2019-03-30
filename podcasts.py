@@ -1,10 +1,11 @@
 import itertools
-from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import tldextract
 from html_extraction import extract_metadata, html2text, extract_main_text
-from listennotes_api import search_listennotes, get_podcast_details
+from listennotes_api import search_listennotes, get_podcast_details, do_networking
 from text_processing import count_words, extract_phrases
+
+COMBINED_PHRASES = 3
 
 
 def get_website_data(link: str):
@@ -28,7 +29,7 @@ def get_website_data(link: str):
 def get_podcasts_for_phrases(phrases):
     results = []
 
-    i = min(2, len(phrases))
+    i = min(COMBINED_PHRASES, len(phrases))
     while i > 0 and not (i == 1 and len(results) > 0):
         current_phrases = phrases[:i]
 
@@ -76,9 +77,3 @@ def find_podcast_by_website(website_url: str, output=False):
             print(podcast['title'])
 
     return podcasts
-
-
-def do_networking(callback, data):
-    thread_pool = ThreadPool(processes=min(10, len(data)))
-
-    return thread_pool.map(callback, data)

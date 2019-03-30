@@ -1,7 +1,9 @@
 import json
+from multiprocessing.dummy import Pool as ThreadPool
 import requests
 
 API_KEY = "ada358ce40ea4d53a3188656f4b0e5ec"
+MAX_NETWORKING_THREADS = 10
 
 
 def search_listennotes(term):
@@ -26,3 +28,9 @@ def get_podcast_details(podcast_id):
                        headers={"X-ListenAPI-Key": API_KEY})
 
     return json.loads(res.text)
+
+
+def do_networking(callback, data):
+    thread_pool = ThreadPool(processes=min(MAX_NETWORKING_THREADS, len(data)))
+
+    return thread_pool.map(callback, data)
