@@ -26,6 +26,11 @@ def get_website_data(link: str):
     return data
 
 
+def unique(sequence):
+    seen = set()
+    return [x for x in sequence if not (x in seen or seen.add(x))]
+
+
 def get_podcasts_for_phrases(phrases):
     results = []
 
@@ -43,7 +48,7 @@ def get_podcasts_for_phrases(phrases):
         i -= 1
 
     # remove duplicate podcasts
-    podcast_ids = list(set([result['podcast_id'] for result in results]))
+    podcast_ids = unique([result['podcast_id'] for result in results])
 
     podcasts = do_networking(lambda podcast_id: get_podcast_details(podcast_id), podcast_ids)
 
