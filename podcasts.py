@@ -68,7 +68,7 @@ def find_podcast_by_website(website_url: str, output=False):
         query += data['title'].split(' ')
     query.append(tldextract.extract(website_url).domain)
 
-    query = list(set(query))
+    query = unique(query)
 
     podcasts = get_podcasts_for_phrases(query)
 
