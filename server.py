@@ -11,7 +11,7 @@ CORS(app)
 @app.route('/podcast-by-website')
 def flask_podcast_by_website():
     url = request.args.get('url')
-    if url.startswith('http'):
+    if not url.startswith('http'):
         url = 'http://' + url
 
     return jsonify(find_podcast_by_website(url))
