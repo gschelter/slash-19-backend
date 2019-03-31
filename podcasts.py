@@ -78,4 +78,7 @@ def find_podcast_by_website(website_url: str, output=False):
         for podcast in podcasts:
             print(podcast['title'])
 
-    return podcasts
+    return {
+        'podcasts': podcasts,
+        'keywords': query
+    }
