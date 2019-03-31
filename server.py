@@ -1,5 +1,4 @@
-from flask import Flask, request, jsonify, abort
-from requests.exceptions import MissingSchema
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from podcasts import find_podcast_by_website
 
@@ -11,12 +10,11 @@ CORS(app)
 
 @app.route('/podcast-by-website')
 def flask_podcast_by_website():
-    try:
-        url = request.args.get('url')
+    url = request.args.get('url')
+    if url.startswith('http'):
+        url = 'http://' + url
 
-        return jsonify(find_podcast_by_website(url))
-    except MissingSchema as e:
-        abort(422, str(e))
+    return jsonify(find_podcast_by_website(url))
 
 
 if __name__ == '__main__':
