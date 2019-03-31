@@ -33,11 +33,12 @@ def get_podcasts_for_phrases(phrases):
     while i > 0 and not (i == 1 and len(results) > 0):
         current_phrases = phrases[:i]
 
-        matching_podcasts = do_networking(lambda permutation: search_listennotes(' '.join(permutation)),
-                                          list(itertools.permutations(current_phrases)))
+        if len(current_phrases) > 0:
+            matching_podcasts = do_networking(lambda permutation: search_listennotes(' '.join(permutation)),
+                                              list(itertools.permutations(current_phrases)))
 
-        for x in matching_podcasts:
-            results += x
+            for x in matching_podcasts:
+                results += x
 
         i -= 1
 
