@@ -12,7 +12,7 @@ itsdangerous==1.1.0
 Jinja2==2.10
 lxml==4.3.3
 MarkupSafe==1.1.1
-nltk==3.4
+nltk==3.4.5
 pycparser==2.19
 pyOpenSSL==19.0.0
 PySocks==1.6.8
